@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
-import 'screens/admin_community_moderation_screen.dart';
-import 'screens/admin_awareness_management_screen.dart';
-
 
 // Admin screens
 import 'screens/admin_manage_appointments_screen.dart';
 import 'screens/admin_user_account_screen.dart';
 import 'screens/admin_reset_password_screen.dart';
-import 'screens/admin_homestay_management_screen.dart'; // ✅ Added
+import 'screens/admin_homestay_management_screen.dart';
+import 'screens/admin_awareness_management_screen.dart';
+import 'screens/admin_community_moderation_screen.dart';
+import 'screens/admin_user_list_screen.dart'; // ✅ NEW
 
 // Medical staff screens
 import 'screens/upload_medical_report_screen.dart';
@@ -85,7 +85,7 @@ class AdminDashboard extends StatelessWidget {
           ],
         ),
 
-        // ================= BODY (UNCHANGED LAYOUT) =================
+        // ================= BODY =================
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -115,9 +115,7 @@ class AdminDashboard extends StatelessWidget {
                 child: ListView(
                   children: [
 
-                    // ==================================================
-                    // 👩‍⚕️ MEDICAL STAFF OPTIONS (UNCHANGED)
-                    // ==================================================
+                    // ================= MEDICAL STAFF OPTIONS =================
                     if (role == 'medical') ...[
                       optionBox(
                         context,
@@ -153,10 +151,9 @@ class AdminDashboard extends StatelessWidget {
                       ),
                     ],
 
-                    // ==================================================
-                    // 🧑‍💼 ADMIN OPTIONS (UNCHANGED EXCEPT HOMESTAY)
-                    // ==================================================
+                    // ================= ADMIN OPTIONS =================
                     if (role == 'admin') ...[
+
                       optionBox(
                         context,
                         icon: Icons.person_add_outlined,
@@ -173,6 +170,25 @@ class AdminDashboard extends StatelessWidget {
                           );
                         },
                       ),
+
+                      // ✅ NEW USER LIST OPTION
+                      optionBox(
+                        context,
+                        icon: Icons.people_outline,
+                        title: 'User List',
+                        subtitle: 'View all registered users',
+                        titleColor: const Color(0xFF1B5E20),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const AdminUserListScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
                       optionBox(
                         context,
                         icon: Icons.lock_reset_outlined,
@@ -189,6 +205,7 @@ class AdminDashboard extends StatelessWidget {
                           );
                         },
                       ),
+
                       optionBox(
                         context,
                         icon: Icons.event_available_outlined,
@@ -206,7 +223,6 @@ class AdminDashboard extends StatelessWidget {
                         },
                       ),
 
-                      // ✅ ONLY CHANGE: Now navigates instead of SnackBar
                       optionBox(
                         context,
                         icon: Icons.home_work_outlined,
@@ -232,16 +248,15 @@ class AdminDashboard extends StatelessWidget {
                         titleColor: const Color(0xFF37474F),
                         onTap: () {
                           Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => const AdminCommunityModerationScreen(),
-  ),
-);
-
-                            
-                          
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const AdminCommunityModerationScreen(),
+                            ),
+                          );
                         },
                       ),
+
                       optionBox(
                         context,
                         icon: Icons.campaign_outlined,
@@ -249,15 +264,12 @@ class AdminDashboard extends StatelessWidget {
                         subtitle: 'Education & information',
                         titleColor: const Color(0xFF5D4037),
                         onTap: () {
-                        Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) =>
-        const AdminAwarenessManagementScreen(),
-  ),
-
-
-                      
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const AdminAwarenessManagementScreen(),
+                            ),
                           );
                         },
                       ),
@@ -272,7 +284,7 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
-  // ================= OPTION BOX (UNCHANGED) =================
+  // ================= OPTION BOX =================
   Widget optionBox(
     BuildContext context, {
     required IconData icon,
@@ -302,7 +314,8 @@ class AdminDashboard extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
