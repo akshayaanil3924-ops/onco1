@@ -146,7 +146,7 @@ class PatientDashboard extends StatelessWidget {
                     optionBox(
                       context,
                       icon: Icons.home_outlined,
-                      title: 'Homestay',
+                      title: 'Accomodation',
                       subtitle: 'Find nearby stays',
                       color: Colors.brown.shade700,
                       screen: HomestayScreen(),

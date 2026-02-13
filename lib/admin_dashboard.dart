@@ -226,7 +226,7 @@ class AdminDashboard extends StatelessWidget {
                       optionBox(
                         context,
                         icon: Icons.home_work_outlined,
-                        title: 'Homestay Management',
+                        title: 'Accomodation Details',
                         subtitle: 'Accommodation support',
                         titleColor: const Color(0xFF0D47A1),
                         onTap: () {
