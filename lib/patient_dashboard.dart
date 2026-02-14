@@ -6,244 +6,351 @@ import 'screens/community_forum_screen.dart';
 import 'screens/awareness_screen.dart';
 
 class PatientDashboard extends StatelessWidget {
-  const PatientDashboard({super.key});
+  final String userName;
 
-  final Color deepBlue = const Color(0xFF0D47A1);
-  final Color accentBlue = const Color.fromARGB(255, 70, 100, 150);
+  const PatientDashboard({
+    super.key,
+    required this.userName,
+  });
+
+  static const Color primaryBlue = Color(0xFF1E5AA8);
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      // 🚫 Disable system back
-      onWillPop: () async => false,
-      child: Scaffold(
-        backgroundColor: Colors.grey.shade100,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: Colors.white,
-          centerTitle: true,
+    final screenWidth = MediaQuery.of(context).size.width;
 
-          // 🚫 Disable top-left back arrow
-          automaticallyImplyLeading: false,
+    double bannerHeight;
+    double titleSize;
+    double subtitleSize;
 
-          // 🔹 APP TITLE
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.volunteer_activism,
-                size: 22,
-                color: accentBlue,
-              ),
-              const SizedBox(width: 6),
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Onco',
-                      style: TextStyle(
-                        color: deepBlue,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Soul',
-                      style: TextStyle(
-                        color: accentBlue,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    if (screenWidth < 600) {
+      bannerHeight = 220;
+      titleSize = 26;
+      subtitleSize = 14;
+    } else if (screenWidth < 1100) {
+      bannerHeight = 250;
+      titleSize = 30;
+      subtitleSize = 16;
+    } else {
+      bannerHeight = 280;
+      titleSize = 34;
+      subtitleSize = 17;
+    }
 
-          // 🔹 LOGOUT BUTTON (BLUE)
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              color: deepBlue, // ✅ changed from red to blue
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text(
-                      'Are you sure you want to logout?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Cancel'),
+   return Scaffold(
+  body: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Color.fromARGB(255, 173, 211, 240), // pastel blue (top)
+          Color.fromARGB(255, 168, 191, 218), // very soft fade
+        ],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
+    ),
+    child: SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+
+                // ================= HEADER (UNCHANGED) =================
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+
+                      Row(
+                        children: const [
+                          Icon(Icons.volunteer_activism, color: primaryBlue),
+                          SizedBox(width: 6),
+                          Text(
+                            "OncoSoul",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 4, 46, 100),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.of(context).popUntil(
-                            (route) => route.isFirst,
-                          );
-                        },
-                        child: const Text(
-                          'Logout',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
+
+                      Row(
+                        children: [
+                          Stack(
+                            children: [
+                              const Icon(Icons.notifications_none, size: 26),
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Text(
+                                    "1",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(width: 14),
+                          Row(
+                            children: [
+                              Text(
+                                userName,
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(width: 8),
+                              const CircleAvatar(
+                                radius: 18,
+                                backgroundImage:
+                                    AssetImage("assets/images/profile.png"),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
                     ],
                   ),
-                );
-              },
+                ),
+
+                // ================= HERO BANNER (UNCHANGED) =================
+                Container(
+                  width: double.infinity,
+                  height: bannerHeight,
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Image.asset(
+                            "assets/images/dashboard_bg.jpg",
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color.fromARGB(255, 205, 241, 239).withOpacity(0.9),
+                                  const Color.fromARGB(255, 239, 250, 247).withOpacity(0.6),
+                                  const Color.fromARGB(255, 239, 247, 244).withOpacity(0.1),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(28),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Hello, $userName",
+                                style: TextStyle(
+                                  fontSize: titleSize,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                "We’re here to support your care journey",
+                                style: TextStyle(fontSize: subtitleSize),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // ================= OPTION CARDS =================
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: dashboardCard(
+                              context,
+                              Icons.video_call,
+                              "Online Consultation",
+                              "Book a doctor consultation",
+                              const OnlineConsultationScreen(),
+                              const Color.fromARGB(255, 12, 58, 150),
+                              const Color.fromARGB(255, 148, 171, 211),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: dashboardCard(
+                              context,
+                              Icons.description,
+                              "View Reports",
+                              "view medical reports",
+                              const ViewReportsScreen(),
+                              const Color.fromARGB(255, 3, 124, 68),
+                              const Color.fromARGB(255, 127, 219, 142),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: dashboardCard(
+                              context,
+                              Icons.home,
+                              "Accomodation",
+                              "Find nearby stays",
+                              const HomestayScreen(),
+                              const Color.fromARGB(255, 207, 111, 32),
+                              const Color.fromARGB(255, 238, 197, 151),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: dashboardCard(
+                              context,
+                              Icons.people,
+                              "Community Forum",
+                              "Join the patient community",
+                              const CommunityForumScreen(),
+                              const Color.fromARGB(255, 126, 115, 14),
+                              const Color.fromARGB(255, 234, 245, 137),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: dashboardCard(
+                              context,
+                              Icons.health_and_safety,
+                              "Awareness",
+                              "Learn about cancer care",
+                              const AwarenessScreen(),
+                              const Color.fromARGB(255, 196, 39, 117),
+                              const Color.fromARGB(255, 218, 137, 161),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          const Spacer(),
+                        ],
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hey..',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: deepBlue,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'We’re here to support your care journey',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Expanded(
-                child: ListView(
-                  children: [
-                    optionBox(
-                      context,
-                      icon: Icons.video_call_outlined,
-                      title: 'Online Consultation',
-                      subtitle: 'Consult doctors',
-                      color: Colors.blue.shade700,
-                      screen: OnlineConsultationScreen(),
-                    ),
-                    optionBox(
-                      context,
-                      icon: Icons.description_outlined,
-                      title: 'View Reports',
-                      subtitle: 'Access your medical reports',
-                      color: Colors.teal.shade700,
-                      screen: ViewReportsScreen(),
-                    ),
-                    optionBox(
-                      context,
-                      icon: Icons.home_outlined,
-                      title: 'Accomodation',
-                      subtitle: 'Find nearby stays',
-                      color: Colors.brown.shade700,
-                      screen: HomestayScreen(),
-                    ),
-                    optionBox(
-                      context,
-                      icon: Icons.people_outline,
-                      title: 'Community Forum',
-                      subtitle: 'Connect with other patients',
-                      color: Colors.purple.shade700,
-                      screen: CommunityForumScreen(),
-                    ),
-                    optionBox(
-                      context,
-                      icon: Icons.health_and_safety_outlined,
-                      title: 'Awareness',
-                      subtitle: 'Learn about cancer care',
-                      color: Colors.green.shade700,
-                      screen: AwarenessScreen(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ),
     );
   }
 
-  // 🔹 OPTION BOX
-  Widget optionBox(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required Widget screen,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => screen),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.35)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.20),
-                ),
-                child: Icon(icon, size: 26, color: color),
+  Widget dashboardCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+    Widget screen,
+    Color iconColor,
+    Color circleColor,
+  ) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(32),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => screen),
+        );
+      },
+      child: Container(
+        height: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 229, 238, 240).withOpacity(0.95),
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: iconColor.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: circleColor,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
+              child: Icon(icon, size: 24, color: iconColor),
+            ),
+
+            const SizedBox(width: 18),
+
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                      ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: color.withValues(alpha: 0.6),
-              ),
-            ],
-          ),
+            ),
+
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey,
+            ),
+          ],
         ),
       ),
     );

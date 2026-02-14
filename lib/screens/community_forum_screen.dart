@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/community_model.dart';
 
 class CommunityForumScreen extends StatelessWidget {
-  CommunityForumScreen({super.key});
+  const CommunityForumScreen({super.key});
+
 
   final Color deepBlue = const Color(0xFF0D47A1);
   final Color softBlue = const Color(0xFFE3F2FD);

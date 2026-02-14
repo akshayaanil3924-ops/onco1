@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ViewReportsScreen extends StatelessWidget {
-  final Color deepBlue = const Color(0xFF0D47A1);
+  const ViewReportsScreen({super.key});
+final Color deepBlue = const Color(0xFF0D47A1);
 
   @override
   Widget build(BuildContext context) {

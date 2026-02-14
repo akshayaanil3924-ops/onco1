@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'my_appointments_screen.dart';
 import 'book_appointments_screen.dart';
-
 class OnlineConsultationScreen extends StatelessWidget {
-  final Color deepBlue = const Color(0xFF0D47A1);
+  const OnlineConsultationScreen({super.key});
+final Color deepBlue = const Color(0xFF0D47A1);
+
 
   @override
   Widget build(BuildContext context) {

@@ -147,12 +147,11 @@ class _LoginPageState
 
     if (user.role == 'Patient') {
       Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              const PatientDashboard(),
-        ),
-      );
+  context,
+  MaterialPageRoute(
+    builder: (_) => PatientDashboard(userName: user.name),
+  ),
+);
     }
 
     else if (user.role ==

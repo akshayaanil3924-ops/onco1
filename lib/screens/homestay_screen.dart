@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomestayScreen extends StatelessWidget {
-  final Color deepBlue = const Color(0xFF0D47A1);
+  const HomestayScreen({super.key});
+final Color deepBlue = const Color(0xFF0D47A1);
 
   @override
   Widget build(BuildContext context) {
