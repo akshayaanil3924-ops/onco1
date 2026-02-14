@@ -37,24 +37,24 @@ class PatientDashboard extends StatelessWidget {
       subtitleSize = 17;
     }
 
-   return Scaffold(
-  body: Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 173, 211, 240), // pastel blue (top)
-          Color.fromARGB(255, 168, 191, 218), // very soft fade
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ),
-    ),
-    child: SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 213, 230, 243),
+              Color.fromARGB(255, 192, 213, 236),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
 
-                // ================= HEADER (UNCHANGED) =================
+                // ================= HEADER =================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: Row(
@@ -122,7 +122,7 @@ class PatientDashboard extends StatelessWidget {
                   ),
                 ),
 
-                // ================= HERO BANNER (UNCHANGED) =================
+                // ================= HERO BANNER =================
                 Container(
                   width: double.infinity,
                   height: bannerHeight,
@@ -193,7 +193,6 @@ class PatientDashboard extends StatelessWidget {
                               context,
                               Icons.video_call,
                               "Online Consultation",
-                              "Book a doctor consultation",
                               const OnlineConsultationScreen(),
                               const Color.fromARGB(255, 12, 58, 150),
                               const Color.fromARGB(255, 148, 171, 211),
@@ -205,7 +204,6 @@ class PatientDashboard extends StatelessWidget {
                               context,
                               Icons.description,
                               "View Reports",
-                              "view medical reports",
                               const ViewReportsScreen(),
                               const Color.fromARGB(255, 3, 124, 68),
                               const Color.fromARGB(255, 127, 219, 142),
@@ -222,8 +220,7 @@ class PatientDashboard extends StatelessWidget {
                             child: dashboardCard(
                               context,
                               Icons.home,
-                              "Accomodation",
-                              "Find nearby stays",
+                              "Accommodation",
                               const HomestayScreen(),
                               const Color.fromARGB(255, 207, 111, 32),
                               const Color.fromARGB(255, 238, 197, 151),
@@ -235,7 +232,6 @@ class PatientDashboard extends StatelessWidget {
                               context,
                               Icons.people,
                               "Community Forum",
-                              "Join the patient community",
                               const CommunityForumScreen(),
                               const Color.fromARGB(255, 126, 115, 14),
                               const Color.fromARGB(255, 234, 245, 137),
@@ -253,7 +249,6 @@ class PatientDashboard extends StatelessWidget {
                               context,
                               Icons.health_and_safety,
                               "Awareness",
-                              "Learn about cancer care",
                               const AwarenessScreen(),
                               const Color.fromARGB(255, 196, 39, 117),
                               const Color.fromARGB(255, 218, 137, 161),
@@ -280,7 +275,6 @@ class PatientDashboard extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String title,
-    String subtitle,
     Widget screen,
     Color iconColor,
     Color circleColor,
@@ -294,7 +288,7 @@ class PatientDashboard extends StatelessWidget {
         );
       },
       child: Container(
-        height: 150,
+        height: 130,
         padding: const EdgeInsets.symmetric(horizontal: 22),
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 229, 238, 240).withOpacity(0.95),
@@ -309,7 +303,6 @@ class PatientDashboard extends StatelessWidget {
         ),
         child: Row(
           children: [
-
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -318,37 +311,15 @@ class PatientDashboard extends StatelessWidget {
               ),
               child: Icon(icon, size: 24, color: iconColor),
             ),
-
             const SizedBox(width: 18),
-
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
               ),
-            ),
-
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey,
             ),
           ],
         ),
