@@ -15,6 +15,13 @@ class AppUser {
 class UserData {
   static List<AppUser> users = [
 
+    // ✅ SUPER ADMIN
+    AppUser(
+      name: 'Super Admin',
+      userId: 'S0001',
+      role: 'Super Admin',
+    ),
+
     // ✅ ADMIN USER
     AppUser(
       name: 'System Admin',
@@ -47,7 +54,8 @@ class UserData {
   static AppUser? findUser(String userId) {
     try {
       return users.firstWhere(
-        (user) => user.userId == userId,
+        (user) => user.userId.toUpperCase() ==
+            userId.trim().toUpperCase(),
       );
     } catch (e) {
       return null;
