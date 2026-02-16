@@ -219,7 +219,7 @@ class _UploadMedicalReportScreenState
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: deepBlue.withOpacity(0.3),
+        color: deepBlue.withValues(alpha:0.3),
       ),
     );
   }

@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
             child: Container(
-              color: deepBlue.withOpacity(0.12),
+              color: deepBlue.withValues(alpha:0.12),
             ),
           ),
 
@@ -121,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
                         padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha:0.9),
                         ),
                         child: Icon(
                           Icons.volunteer_activism,

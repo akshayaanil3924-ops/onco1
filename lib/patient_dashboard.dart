@@ -142,9 +142,9 @@ class PatientDashboard extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color.fromARGB(255, 205, 241, 239).withOpacity(0.9),
-                                  const Color.fromARGB(255, 239, 250, 247).withOpacity(0.6),
-                                  const Color.fromARGB(255, 239, 247, 244).withOpacity(0.1),
+                                  const Color.fromARGB(255, 205, 241, 239).withValues(alpha:0.9),
+                                  const Color.fromARGB(255, 239, 250, 247).withValues(alpha:0.6),
+                                  const Color.fromARGB(255, 239, 247, 244).withValues(alpha:0.1),
                                 ],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
@@ -291,11 +291,11 @@ class PatientDashboard extends StatelessWidget {
         height: 130,
         padding: const EdgeInsets.symmetric(horizontal: 22),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 229, 238, 240).withOpacity(0.95),
+          color: const Color.fromARGB(255, 229, 238, 240).withValues(alpha:0.95),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withOpacity(0.08),
+              color: iconColor.withValues(alpha:0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),

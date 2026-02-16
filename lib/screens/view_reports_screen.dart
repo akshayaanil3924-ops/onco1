@@ -55,7 +55,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: deepBlue.withOpacity(0.25),
+          color: deepBlue.withValues(alpha:0.25),
         ),
       ),
       child: Column(

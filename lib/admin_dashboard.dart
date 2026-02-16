@@ -24,8 +24,8 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         backgroundColor: Colors.grey.shade100,
 
@@ -308,7 +308,7 @@ class AdminDashboard extends StatelessWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: titleColor.withOpacity(0.15),
+                backgroundColor: titleColor.withValues(alpha: 0.15),
                 child: Icon(icon, color: titleColor),
               ),
               const SizedBox(width: 16),
@@ -339,7 +339,7 @@ class AdminDashboard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: titleColor.withOpacity(0.6),
+                color: titleColor.withValues(alpha: 0.6),
               ),
             ],
           ),

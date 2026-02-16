@@ -67,7 +67,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: deepBlue.withOpacity(0.3),
+              color: deepBlue.withValues(alpha:0.3),
             ),
           ),
           child: Row(
@@ -76,7 +76,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: deepBlue.withOpacity(0.15),
+                  color: deepBlue.withValues(alpha:0.15),
                 ),
                 child: Icon(icon, size: 26, color: deepBlue),
               ),
@@ -107,7 +107,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: deepBlue.withOpacity(0.6),
+                color: deepBlue.withValues(alpha:0.6),
               ),
             ],
           ),

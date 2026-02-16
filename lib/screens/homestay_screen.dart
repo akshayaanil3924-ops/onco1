@@ -76,12 +76,12 @@ final Color deepBlue = const Color(0xFF0D47A1);
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: deepBlue.withOpacity(0.35),
+          color: deepBlue.withValues(alpha:0.35),
           width: 2.5, // ✅ increased border size (fix)
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

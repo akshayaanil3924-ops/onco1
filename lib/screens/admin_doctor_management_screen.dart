@@ -59,7 +59,7 @@ class _AdminDoctorManagementScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: deepBlue.withOpacity(0.2)),
+        border: Border.all(color: deepBlue.withValues(alpha:0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,7 +67,7 @@ class _AdminDoctorManagementScreenState
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: deepBlue.withOpacity(0.1),
+                backgroundColor: deepBlue.withValues(alpha:0.1),
                 child: Icon(Icons.medical_services, color: deepBlue),
               ),
               const SizedBox(width: 12),

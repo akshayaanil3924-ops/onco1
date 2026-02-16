@@ -68,18 +68,19 @@ class _AwarenessScreenState
             const SizedBox(height: 12),
 
             // ================= CATEGORY FILTER =================
-            DropdownButtonFormField<String>(
-              value: selectedCategory,
-              items: categories.map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCategory = value!;
-                });
+            DropdownButtonFormField(
+  initialValue: selectedCategory,
+  items: categories.map((category) {
+    return DropdownMenuItem(
+      value: category,
+      child: Text(category),
+    );
+  }).toList(),
+  onChanged: (value) {
+    setState(() {
+      selectedCategory = value!;
+    });
+
               },
               decoration: const InputDecoration(
                 labelText: 'Filter by Category',
