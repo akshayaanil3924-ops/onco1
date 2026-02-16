@@ -22,30 +22,61 @@ class SuperAdminDashboard extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.grey.shade100,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          title: const Text(
-            "Super Administration",
-            style: TextStyle(
-              color: Color(0xFF0D47A1),
-              fontWeight: FontWeight.w700,
+  backgroundColor: Colors.white,
+  elevation: 0,
+  centerTitle: true,
+  automaticallyImplyLeading: false,
+  title: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Icon(
+        Icons.volunteer_activism,
+        size: 22,
+        color: Color(0xFF0D47A1),
+      ),
+      const SizedBox(width: 6),
+      RichText(
+        text: const TextSpan(
+          children: [
+            TextSpan(
+              text: 'Onco',
+              style: TextStyle(
+                color: Color(0xFF0D47A1),
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Color(0xFF0D47A1)),
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                  (route) => false,
-                );
-              },
+            TextSpan(
+              text: 'Soul',
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),
+      ),
+    ],
+  ),
+  actions: [
+    IconButton(
+      icon: const Icon(
+        Icons.logout,
+        color: Color(0xFF0D47A1),
+      ),
+      onPressed: () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (route) => false,
+        );
+      },
+    ),
+  ],
+),
+
+      
 
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -125,20 +156,12 @@ class SuperAdminDashboard extends StatelessWidget {
                 },
               ),
 
-              optionBox(
-                context,
-                icon: Icons.admin_panel_settings_outlined,
-                title: "Manage Roles",
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Role Management Coming Soon"),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+             
+                  
+            ]
+              
+            
+          )
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'screens/view_reports_screen.dart';
 import 'screens/homestay_screen.dart';
 import 'screens/community_forum_screen.dart';
 import 'screens/awareness_screen.dart';
+import 'login.dart'; // ✅ Added for logout navigation
 
 class PatientDashboard extends StatelessWidget {
   final String userName;
@@ -78,6 +79,8 @@ class PatientDashboard extends StatelessWidget {
 
                       Row(
                         children: [
+
+                          // 🔔 Notification
                           Stack(
                             children: [
                               const Icon(Icons.notifications_none, size: 26),
@@ -101,20 +104,24 @@ class PatientDashboard extends StatelessWidget {
                               )
                             ],
                           ),
-                          const SizedBox(width: 14),
-                          Row(
-                            children: [
-                              Text(
-                                userName,
-                                style: const TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(width: 8),
-                              const CircleAvatar(
-                                radius: 18,
-                                backgroundImage:
-                                    AssetImage("assets/images/profile.png"),
-                              ),
-                            ],
+
+                          const SizedBox(width: 20),
+
+                          // ✅ Logout Button (Replaced Profile)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.logout,
+                              color: primaryBlue,
+                            ),
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginPage(),
+                                ),
+                                (route) => false,
+                              );
+                            },
                           ),
                         ],
                       )
@@ -142,9 +149,9 @@ class PatientDashboard extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color.fromARGB(255, 205, 241, 239).withValues(alpha:0.9),
-                                  const Color.fromARGB(255, 239, 250, 247).withValues(alpha:0.6),
-                                  const Color.fromARGB(255, 239, 247, 244).withValues(alpha:0.1),
+                                  const Color.fromARGB(255, 205, 241, 239).withOpacity(0.9),
+                                  const Color.fromARGB(255, 239, 250, 247).withOpacity(0.6),
+                                  const Color.fromARGB(255, 239, 247, 244).withOpacity(0.1),
                                 ],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
@@ -291,11 +298,11 @@ class PatientDashboard extends StatelessWidget {
         height: 130,
         padding: const EdgeInsets.symmetric(horizontal: 22),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 229, 238, 240).withValues(alpha:0.95),
+          color: const Color.fromARGB(255, 229, 238, 240).withOpacity(0.95),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withValues(alpha:0.08),
+              color: iconColor.withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
