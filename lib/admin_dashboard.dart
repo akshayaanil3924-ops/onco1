@@ -10,6 +10,7 @@ import 'screens/admin_user_list_screen.dart';
 
 // Medical staff screens
 import 'screens/upload_medical_report_screen.dart';
+import 'screens/upload_consultation_summary_screen.dart';
 import 'screens/medical_staff_view_appointments_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
@@ -112,6 +113,21 @@ class AdminDashboard extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => const UploadMedicalReportScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      optionBox(
+                        context,
+                        icon: Icons.summarize_outlined,
+                        title: 'Upload Consultation Summary',
+                        subtitle: 'Post-consultation notes & summaries',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const UploadConsultationSummaryScreen(),
                             ),
                           );
                         },

@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HomestayScreen extends StatelessWidget {
   const HomestayScreen({super.key});
-  final Color deepBlue = const Color(0xFF0D47A1);
+final Color deepBlue = const Color(0xFF0D47A1);
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +14,8 @@ class HomestayScreen extends StatelessWidget {
         title: Text(
           'Nearby Homestays',
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontSize: 20,                // ✅ font change
+            fontWeight: FontWeight.w700, // ✅ font change
             color: deepBlue,
             letterSpacing: 0.5,
           ),
@@ -37,7 +37,6 @@ class HomestayScreen extends StatelessWidget {
               image: 'assets/images/homestay1.jpg',
               name: 'CareNest',
               location: 'City Cancer Hospital',
-              rate: 1200,
               lat: 12.9716,
               lng: 77.5946,
             ),
@@ -46,7 +45,6 @@ class HomestayScreen extends StatelessWidget {
               image: 'assets/images/homestay2.jpg',
               name: 'HopeStay',
               location: 'Apollo Oncology',
-              rate: 1500,
               lat: 12.9352,
               lng: 77.6245,
             ),
@@ -55,7 +53,6 @@ class HomestayScreen extends StatelessWidget {
               image: 'assets/images/homestay3.jpg',
               name: 'Healing Homes',
               location: 'Medical College Rd',
-              rate: 1000,
               lat: 12.9987,
               lng: 77.5921,
             ),
@@ -71,7 +68,6 @@ class HomestayScreen extends StatelessWidget {
     required String image,
     required String name,
     required String location,
-    required double rate, // ✅ Added rate
     required double lat,
     required double lng,
   }) {
@@ -80,12 +76,12 @@ class HomestayScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: deepBlue.withOpacity(0.35),
-          width: 2.5,
+          color: deepBlue.withValues(alpha:0.35),
+          width: 2.5, // ✅ increased border size (fix)
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -94,7 +90,6 @@ class HomestayScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-
           // IMAGE
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
@@ -130,20 +125,6 @@ class HomestayScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey.shade700,
-              ),
-            ),
-          ),
-
-          // ✅ RATE PER DAY (NEW)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            child: Text(
-              "₹${rate.toStringAsFixed(0)} / day",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: deepBlue,
               ),
             ),
           ),

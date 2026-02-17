@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/notification_service.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -135,9 +136,21 @@ class _AppointmentsPageState extends State<AppointmentsScreen>
   }
 
   void cancelAppointment(int index) {
+    final appt = appointments[index];
+    final date = appt["date"] as DateTime;
+    final time = appt["time"] as TimeOfDay;
+    final dateStr = "${date.day}/${date.month}/${date.year}";
+
     setState(() {
       appointments[index]["status"] = "Cancelled";
     });
+
+  // Notify the patient that the doctor cancelled
+    NotificationService.instance.addAppointmentCancellationForPatient(
+      doctor: "your doctor",
+      date: dateStr,
+      slot: time.format(context),
+    );
   }
 
   Future<void> rescheduleAppointment(int index) async {

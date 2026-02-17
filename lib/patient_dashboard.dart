@@ -4,9 +4,11 @@ import 'screens/view_reports_screen.dart';
 import 'screens/homestay_screen.dart';
 import 'screens/community_forum_screen.dart';
 import 'screens/awareness_screen.dart';
-import 'login.dart'; // ✅ Added for logout navigation
+import 'services/notification_service.dart';
+import 'widgets/notification_panel.dart';
+import 'login.dart';
 
-class PatientDashboard extends StatelessWidget {
+class PatientDashboard extends StatefulWidget {
   final String userName;
 
   const PatientDashboard({
@@ -14,29 +16,74 @@ class PatientDashboard extends StatelessWidget {
     required this.userName,
   });
 
+  @override
+  State<PatientDashboard> createState() => _PatientDashboardState();
+}
+
+class _PatientDashboardState extends State<PatientDashboard> {
   static const Color primaryBlue = Color(0xFF1E5AA8);
+  final _notifService = NotificationService.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifService.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    _notifService.removeListener(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  void _showNotificationPanel(BuildContext context) {
+    _notifService.markAllPatientRead();
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      barrierDismissible: true,
+      builder: (ctx) {
+        return Stack(
+          children: [
+            Positioned(
+              top: MediaQuery.of(ctx).padding.top + 64,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: ListenableBuilder(
+                  listenable: _notifService,
+                  builder: (_, __) => NotificationPanel(
+                    notifications: _notifService.patientNotifications,
+                    onMarkAllRead: _notifService.markAllPatientRead,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _logout(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    double bannerHeight;
-    double titleSize;
-    double subtitleSize;
-
-    if (screenWidth < 600) {
-      bannerHeight = 220;
-      titleSize = 26;
-      subtitleSize = 14;
-    } else if (screenWidth < 1100) {
-      bannerHeight = 250;
-      titleSize = 30;
-      subtitleSize = 16;
-    } else {
-      bannerHeight = 280;
-      titleSize = 34;
-      subtitleSize = 17;
-    }
+    double bannerHeight = screenWidth < 600 ? 220 : screenWidth < 1100 ? 250 : 280;
+    double titleSize = screenWidth < 600 ? 26 : screenWidth < 1100 ? 30 : 34;
+    double subtitleSize = screenWidth < 600 ? 14 : screenWidth < 1100 ? 16 : 17;
+    final unreadCount = _notifService.patientUnreadCount;
 
     return Scaffold(
       body: Container(
@@ -55,13 +102,14 @@ class PatientDashboard extends StatelessWidget {
             child: Column(
               children: [
 
-                // ================= HEADER =================
+                // ── HEADER ──────────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
 
+                      // Logo
                       Row(
                         children: const [
                           Icon(Icons.volunteer_activism, color: primaryBlue),
@@ -77,59 +125,70 @@ class PatientDashboard extends StatelessWidget {
                         ],
                       ),
 
+                      // Right side: Bell + Logout + Avatar
                       Row(
                         children: [
 
-                          // 🔔 Notification
-                          Stack(
-                            children: [
-                              const Icon(Icons.notifications_none, size: 26),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Text(
-                                    "1",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
+                          // 🔔 Notification Bell
+                          GestureDetector(
+                            onTap: () => _showNotificationPanel(context),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                const Icon(Icons.notifications_none, size: 28),
+                                if (unreadCount > 0)
+                                  Positioned(
+                                    right: -4,
+                                    top: -4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              )
-                            ],
-                          ),
-
-                          const SizedBox(width: 20),
-
-                          // ✅ Logout Button (Replaced Profile)
-                          IconButton(
-                            icon: const Icon(
-                              Icons.logout,
-                              color: primaryBlue,
+                              ],
                             ),
-                            onPressed: () {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginPage(),
-                                ),
-                                (route) => false,
-                              );
-                            },
+                          ),
+                          const SizedBox(width: 14),
+
+                          // 🚪 Logout Button
+                          GestureDetector(
+                            onTap: () => _logout(context),
+                            child: const Icon(
+                              Icons.logout,
+                              size: 26,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+
+                          // 👤 User name + Avatar
+                          Text(
+                            widget.userName,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 8),
+                          const CircleAvatar(
+                            radius: 18,
+                            backgroundImage: AssetImage("assets/images/profile.png"),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
 
-                // ================= HERO BANNER =================
+                // ── HERO BANNER ──────────────────────────────────────────────
                 Container(
                   width: double.infinity,
                   height: bannerHeight,
@@ -149,9 +208,9 @@ class PatientDashboard extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color.fromARGB(255, 205, 241, 239).withOpacity(0.9),
-                                  const Color.fromARGB(255, 239, 250, 247).withOpacity(0.6),
-                                  const Color.fromARGB(255, 239, 247, 244).withOpacity(0.1),
+                                  const Color.fromARGB(255, 205, 241, 239).withValues(alpha: 0.9),
+                                  const Color.fromARGB(255, 239, 250, 247).withValues(alpha: 0.6),
+                                  const Color.fromARGB(255, 239, 247, 244).withValues(alpha: 0.1),
                                 ],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
@@ -166,7 +225,7 @@ class PatientDashboard extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "Hello, $userName",
+                                "Hello, ${widget.userName}",
                                 style: TextStyle(
                                   fontSize: titleSize,
                                   fontWeight: FontWeight.bold,
@@ -174,7 +233,7 @@ class PatientDashboard extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                "We’re here to support your care journey",
+                                "We're here to support your care journey",
                                 style: TextStyle(fontSize: subtitleSize),
                               ),
                             ],
@@ -187,7 +246,7 @@ class PatientDashboard extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
-                // ================= OPTION CARDS =================
+                // ── OPTION CARDS ─────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
@@ -196,7 +255,7 @@ class PatientDashboard extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: dashboardCard(
+                            child: _card(
                               context,
                               Icons.video_call,
                               "Online Consultation",
@@ -207,7 +266,7 @@ class PatientDashboard extends StatelessWidget {
                           ),
                           const SizedBox(width: 20),
                           Expanded(
-                            child: dashboardCard(
+                            child: _card(
                               context,
                               Icons.description,
                               "View Reports",
@@ -224,7 +283,7 @@ class PatientDashboard extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: dashboardCard(
+                            child: _card(
                               context,
                               Icons.home,
                               "Accommodation",
@@ -235,7 +294,7 @@ class PatientDashboard extends StatelessWidget {
                           ),
                           const SizedBox(width: 20),
                           Expanded(
-                            child: dashboardCard(
+                            child: _card(
                               context,
                               Icons.people,
                               "Community Forum",
@@ -252,7 +311,7 @@ class PatientDashboard extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: dashboardCard(
+                            child: _card(
                               context,
                               Icons.health_and_safety,
                               "Awareness",
@@ -278,7 +337,7 @@ class PatientDashboard extends StatelessWidget {
     );
   }
 
-  Widget dashboardCard(
+  Widget _card(
     BuildContext context,
     IconData icon,
     String title,
@@ -288,21 +347,19 @@ class PatientDashboard extends StatelessWidget {
   ) {
     return InkWell(
       borderRadius: BorderRadius.circular(32),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => screen),
-        );
-      },
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => screen),
+      ),
       child: Container(
         height: 130,
         padding: const EdgeInsets.symmetric(horizontal: 22),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 229, 238, 240).withOpacity(0.95),
+          color: const Color.fromARGB(255, 229, 238, 240).withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withOpacity(0.08),
+              color: iconColor.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
