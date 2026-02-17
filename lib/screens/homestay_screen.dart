@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HomestayScreen extends StatelessWidget {
   const HomestayScreen({super.key});
-final Color deepBlue = const Color(0xFF0D47A1);
+  final Color deepBlue = const Color(0xFF0D47A1);
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +14,8 @@ final Color deepBlue = const Color(0xFF0D47A1);
         title: Text(
           'Nearby Homestays',
           style: TextStyle(
-            fontSize: 20,                // ✅ font change
-            fontWeight: FontWeight.w700, // ✅ font change
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
             color: deepBlue,
             letterSpacing: 0.5,
           ),
@@ -37,6 +37,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
               image: 'assets/images/homestay1.jpg',
               name: 'CareNest',
               location: 'City Cancer Hospital',
+              rate: 1200,
               lat: 12.9716,
               lng: 77.5946,
             ),
@@ -45,6 +46,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
               image: 'assets/images/homestay2.jpg',
               name: 'HopeStay',
               location: 'Apollo Oncology',
+              rate: 1500,
               lat: 12.9352,
               lng: 77.6245,
             ),
@@ -53,6 +55,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
               image: 'assets/images/homestay3.jpg',
               name: 'Healing Homes',
               location: 'Medical College Rd',
+              rate: 1000,
               lat: 12.9987,
               lng: 77.5921,
             ),
@@ -68,6 +71,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
     required String image,
     required String name,
     required String location,
+    required double rate, // ✅ Added rate
     required double lat,
     required double lng,
   }) {
@@ -76,12 +80,12 @@ final Color deepBlue = const Color(0xFF0D47A1);
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: deepBlue.withValues(alpha:0.35),
-          width: 2.5, // ✅ increased border size (fix)
+          color: deepBlue.withOpacity(0.35),
+          width: 2.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -90,6 +94,7 @@ final Color deepBlue = const Color(0xFF0D47A1);
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+
           // IMAGE
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
@@ -125,6 +130,20 @@ final Color deepBlue = const Color(0xFF0D47A1);
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+
+          // ✅ RATE PER DAY (NEW)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            child: Text(
+              "₹${rate.toStringAsFixed(0)} / day",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: deepBlue,
               ),
             ),
           ),

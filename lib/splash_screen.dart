@@ -1,895 +1,568 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'login.dart';
 
+// ── Top-level palette consts ────────────────────────────────────────────────
+const Color _kNavy  = Color(0xFF0D3B7A);
+const Color _kMid   = Color(0xFF1976D2);
+const Color _kSky   = Color(0xFF64B5F6);
+const Color _kIce   = Color(0xFFD6EAFB);
+const Color _kWhite = Color(0xFFFFFFFF);
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-  
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _mainController;
-  late AnimationController _slideController;
-  late AnimationController _floatController;
-  late AnimationController _glowController;
-  late AnimationController _particleController;
 
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _floatAnimation;
-  late Animation<double> _glowAnimation;
-  late Animation<double> _particleAnimation;
+  // ── Controllers ────────────────────────────────────────────────
+  late AnimationController _entryCtrl;   // page entry stagger
+  late AnimationController _pulseCtrl;   // icon heartbeat
+  late AnimationController _floatCtrl;   // bg float
+  late AnimationController _slideInCtrl; // content slides IN (up from below)
+  late AnimationController _slideOutCtrl;// content slides OUT (up, fades)
+  late AnimationController _exitCtrl;    // whole-screen exit
 
-  int currentSlide = 0;
-  late Timer _slideTimer;
+  // ── Entry ──────────────────────────────────────────────────────
+  late Animation<double> _bgFade;
+  late Animation<double> _iconFade;
+  late Animation<double> _iconScale;
+  late Animation<double> _nameFade;
+  late Animation<Offset>  _nameSlide;
+  late Animation<double> _dividerW;
+  late Animation<double> _cardFade;
+  late Animation<Offset>  _cardRise;
 
-  // Deep blue palette with white accents
-  final Color deepBlue = const Color(0xFF0D47A1);
-  final Color mediumBlue = const Color(0xFF1976D2);
-  final Color accentBlue = const Color(0xFF64B5F6);
-  final Color pureWhite = const Color(0xFFFFFFFF);
-  final Color softWhite = const Color(0xFFF8FBFF);
-  final Color darkText = const Color(0xFF0A2540);
+  // ── Loop ───────────────────────────────────────────────────────
+  late Animation<double> _pulse;
+  late Animation<double> _float;
 
-  final List<SlideContent> slides = [
-    SlideContent(
-      icon: Icons.favorite,
-      title: 'OncoSoul',
-      subtitle: 'Your companion in the journey',
-    ),
-    SlideContent(
-      icon: Icons.psychology_outlined,
-      title: 'We Understand',
-      subtitle: 'Supporting you every step',
-    ),
-    SlideContent(
-      icon: Icons.volunteer_activism,
-      title: 'Together Strong',
-      subtitle: 'A caring community awaits',
-    ),
+  // ── Slide IN ───────────────────────────────────────────────────
+  late Animation<double> _inFade;
+  late Animation<Offset>  _inSlide;
+
+  // ── Slide OUT ──────────────────────────────────────────────────
+  late Animation<double> _outFade;
+  late Animation<Offset>  _outSlide;
+
+  // ── Exit ───────────────────────────────────────────────────────
+  late Animation<double> _exitFade;
+
+  int  _slide    = 0;
+  bool _animOut  = false; // true while exit animation running
+  bool _exiting  = false;
+
+  // ── Content ────────────────────────────────────────────────────
+  static const _slides = [
+    _SlideData(icon: Icons.volunteer_activism,  label: 'COMPASSIONATE CARE',
+        title: 'OncoSoul',
+        body: 'Your trusted companion through\nevery step of the healing journey'),
+    _SlideData(icon: Icons.video_call,          label: 'ONLINE CONSULTATION',
+        title: 'Your doctor,\nanytime',
+        body: 'Secure video calls with licensed\nhospital doctors & nurses'),
+    _SlideData(icon: Icons.folder_open,         label: 'MEDICAL RECORDS',
+        title: 'Reports always\nat hand',
+        body: 'Real-time access to test results\nand your full treatment history'),
+    _SlideData(icon: Icons.people_outline,      label: 'COMMUNITY',
+        title: 'You are\nnever alone',
+        body: 'Share your story, find strength\nand connect with those who care'),
   ];
 
-  // Hospital/Medical related icons for background
-  final List<IconData> medicalIcons = [
-    Icons.medical_services_outlined,
-    Icons.local_hospital_outlined,
-    Icons.health_and_safety_outlined,
-    Icons.medication_outlined,
-    Icons.monitor_heart_outlined,
-    Icons.biotech_outlined,
-    Icons.vaccines_outlined,
-    Icons.science_outlined,
+  static const _bgIcons = [
+    _BgIcon(Icons.medical_services,  0.08, 0.09, 80),
+    _BgIcon(Icons.monitor_heart,     0.72, 0.06, 60),
+    _BgIcon(Icons.science,           0.80, 0.68, 70),
+    _BgIcon(Icons.medication,        0.05, 0.60, 55),
+    _BgIcon(Icons.vaccines,          0.45, 0.82, 65),
+    _BgIcon(Icons.health_and_safety, 0.60, 0.18, 58),
   ];
 
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ));
 
-    _mainController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
+    // ── Entry stagger (2 s) ─────────────────────────────────────
+    _entryCtrl = AnimationController(vsync: this,
+        duration: const Duration(milliseconds: 2000));
 
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _mainController,
-        curve: Curves.easeOut,
-      ),
-    );
+    _bgFade    = _iv(0.00, 0.40, Curves.easeOut);
+    _iconFade  = _iv(0.10, 0.50, Curves.easeOut);
+    _iconScale = Tween<double>(begin: 0.55, end: 1.0).animate(
+        CurvedAnimation(parent: _entryCtrl,
+            curve: const Interval(0.10, 0.58, curve: Curves.elasticOut)));
+    _nameFade  = _iv(0.32, 0.65, Curves.easeOut);
+    _nameSlide = Tween<Offset>(begin: const Offset(0, 0.45), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _entryCtrl,
+            curve: const Interval(0.32, 0.65, curve: Curves.easeOutCubic)));
+    _dividerW  = _iv(0.48, 0.78, Curves.easeOutCubic);
+    _cardFade  = _iv(0.55, 0.90, Curves.easeOut);
+    _cardRise  = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _entryCtrl,
+            curve: const Interval(0.55, 0.92, curve: Curves.easeOutCubic)));
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _mainController,
-        curve: Curves.easeOutBack,
-      ),
-    );
+    // ── Pulse ───────────────────────────────────────────────────
+    _pulseCtrl = AnimationController(vsync: this,
+        duration: const Duration(milliseconds: 2000));
+    _pulse = Tween<double>(begin: 1.0, end: 1.065).animate(
+        CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
 
-    _slideController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+    // ── Float ───────────────────────────────────────────────────
+    _floatCtrl = AnimationController(vsync: this,
+        duration: const Duration(milliseconds: 4500));
+    _float = Tween<double>(begin: -12.0, end: 12.0).animate(
+        CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.4, 0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _slideController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    // ── Slide IN — content rises from below, fades in ───────────
+    // Duration 480 ms feels natural, not rushed
+    _slideInCtrl = AnimationController(vsync: this,
+        duration: const Duration(milliseconds: 480));
+    _inFade  = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _slideInCtrl, curve: Curves.easeOut));
+    _inSlide = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _slideInCtrl,
+            curve: Curves.easeOutCubic));
 
-    _floatController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3500),
-    );
+    // ── Slide OUT — content drifts upward, fades out ─────────────
+    // Shorter (280 ms) so the swap feels crisp but not jarring
+    _slideOutCtrl = AnimationController(vsync: this,
+        duration: const Duration(milliseconds: 280));
+    _outFade  = Tween<double>(begin: 1.0, end: 0.0).animate(
+        CurvedAnimation(parent: _slideOutCtrl, curve: Curves.easeIn));
+    _outSlide = Tween<Offset>(begin: Offset.zero,
+            end: const Offset(0, -0.10))
+        .animate(CurvedAnimation(parent: _slideOutCtrl,
+            curve: Curves.easeIn));
 
-    _floatAnimation = Tween<double>(begin: -15, end: 15).animate(
-      CurvedAnimation(
-        parent: _floatController,
-        curve: Curves.easeInOut,
-      ),
-    );
+    // ── Exit ────────────────────────────────────────────────────
+    _exitCtrl = AnimationController(vsync: this,
+        duration: const Duration(milliseconds: 600));
+    _exitFade = Tween<double>(begin: 1.0, end: 0.0).animate(
+        CurvedAnimation(parent: _exitCtrl, curve: Curves.easeInOut));
 
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    );
+    // ── Start ───────────────────────────────────────────────────
+    _entryCtrl.forward().then((_) => _slideInCtrl.forward());
+    _pulseCtrl.repeat(reverse: true);
+    _floatCtrl.repeat(reverse: true);
 
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _glowController,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4000),
-    );
-
-    _particleAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _particleController,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    _mainController.forward();
-    _slideController.forward();
-    _floatController.repeat(reverse: true);
-    _glowController.repeat(reverse: true);
-    _particleController.repeat(reverse: true);
-
-    _slideTimer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
-      if (mounted) {
+    // Slide timer: OUT (drift up + fade) → swap → IN (rise + fade)
+    Timer.periodic(const Duration(milliseconds: 3400), (t) {
+      if (!mounted) { t.cancel(); return; }
+      _slideInCtrl.stop();
+      setState(() => _animOut = true);
+      _slideOutCtrl.forward(from: 0).then((_) {
+        if (!mounted) return;
         setState(() {
-          currentSlide = (currentSlide + 1) % slides.length;
+          _slide   = (_slide + 1) % _slides.length;
+          _animOut = false;
         });
-        _slideController.reset();
-        _slideController.forward();
-      }
+        _slideInCtrl.forward(from: 0);
+      });
     });
 
-    Timer(const Duration(seconds: 9), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => LoginPage(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.05),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOut,
-                  )),
-                  child: child,
-                ),
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 600),
-          ),
-        );
-      }
-    });
+    Timer(const Duration(milliseconds: 13600), _navigateToLogin);
+  }
+
+  Animation<double> _iv(double from, double to, Curve curve) =>
+      Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+          parent: _entryCtrl, curve: Interval(from, to, curve: curve)));
+
+  Future<void> _navigateToLogin() async {
+    if (!mounted) return;
+    // Stop slide timer interference
+    setState(() => _exiting = true);
+    // Fade the whole splash out
+    await _exitCtrl.forward();
+    if (!mounted) return;
+    // Login page fades in cleanly — no slide, no jitter
+    Navigator.pushReplacement(context, PageRouteBuilder(
+      transitionDuration: const Duration(milliseconds: 600),
+      pageBuilder: (_, __, ___) => LoginPage(),
+      transitionsBuilder: (_, anim, __, child) => FadeTransition(
+        opacity: CurvedAnimation(parent: anim, curve: Curves.easeIn),
+        child: child,
+      ),
+    ));
   }
 
   @override
   void dispose() {
-    _slideTimer.cancel();
-    _mainController.dispose();
-    _slideController.dispose();
-    _floatController.dispose();
-    _glowController.dispose();
-    _particleController.dispose();
+    _entryCtrl.dispose();
+    _pulseCtrl.dispose();
+    _floatCtrl.dispose();
+    _slideInCtrl.dispose();
+    _slideOutCtrl.dispose();
+    _exitCtrl.dispose();
     super.dispose();
   }
 
+  // ── Build ──────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final sz = MediaQuery.of(context).size;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F9FF),
+        body: AnimatedBuilder(
+          animation: Listenable.merge([
+            _entryCtrl, _pulseCtrl, _floatCtrl,
+            _slideInCtrl, _slideOutCtrl, _exitCtrl,
+          ]),
+          builder: (_, __) {
+            Widget content = Stack(fit: StackFit.expand, children: [
 
-    return Scaffold(
-      body: Container(
-        width: size.width,
-        height: size.height,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              softWhite,
-              accentBlue.withOpacity(0.2),
-              mediumBlue.withOpacity(0.5),
-              deepBlue,
-            ],
-            stops: const [0.0, 0.35, 0.65, 1.0],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // Medical-themed white particles floating
-            AnimatedBuilder(
-              animation: _particleAnimation,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: size,
-                  painter: MedicalParticlePainter(
-                    animation: _particleAnimation.value,
-                  ),
-                );
-              },
-            ),
+              // 1 ── Background gradient
+              Opacity(opacity: _bgFade.value, child: const _Bg()),
 
-            // Hospital/Medical themed floating background icons
-            ...List.generate(8, (index) {
-              return AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  final isEven = index % 2 == 0;
-                  return Positioned(
-                    left: (index % 3) * size.width / 2.5 + (index % 2 == 0 ? -20 : 20),
-                    top: (index ~/ 3) * size.height / 3 + 
-                        _floatAnimation.value * (isEven ? 1 : -1),
-                    child: Opacity(
-                      opacity: 0.04,
-                      child: Transform.rotate(
-                        angle: (index * math.pi / 6),
-                        child: Icon(
-                          medicalIcons[index % medicalIcons.length],
-                          size: 85 + (index * 10.0),
-                          color: deepBlue,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            }),
+              // 2 ── Dot texture
+              Opacity(opacity: _bgFade.value * 0.5,
+                  child: CustomPaint(size: sz,
+                      painter: const _DotTexturePainter())),
 
-            // Medical cross symbols in background
-            Positioned(
-              top: size.height * 0.15,
-              right: size.width * 0.15,
-              child: AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(_floatAnimation.value * 0.3, _floatAnimation.value * 0.5),
-                    child: Opacity(
-                      opacity: 0.05,
-                      child: Icon(
-                        Icons.add_box_outlined,
-                        size: 120,
-                        color: pureWhite,
-                      ),
-                    ),
-                  );
-                },
+              // 3 ── White radial wash (top-left)
+              Positioned(top: -sz.width * 0.4, left: -sz.width * 0.2,
+                child: Opacity(opacity: _bgFade.value, child: Container(
+                  width: sz.width * 1.3, height: sz.width * 1.3,
+                  decoration: BoxDecoration(shape: BoxShape.circle,
+                    gradient: RadialGradient(colors: [
+                      _kWhite.withOpacity(0.55),
+                      _kWhite.withOpacity(0.18),
+                      Colors.transparent,
+                    ], stops: const [0.0, 0.5, 1.0])),
+                )),
               ),
-            ),
 
-            Positioned(
-              bottom: size.height * 0.2,
-              left: size.width * 0.1,
-              child: AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(_floatAnimation.value * -0.4, _floatAnimation.value * 0.3),
-                    child: Opacity(
-                      opacity: 0.06,
-                      child: Icon(
-                        Icons.local_hospital,
-                        size: 100,
-                        color: pureWhite,
-                      ),
-                    ),
-                  );
-                },
+              // 4 ── Blue orb (bottom-right)
+              Positioned(bottom: -sz.width * 0.35, right: -sz.width * 0.25,
+                child: Opacity(opacity: _bgFade.value * 0.7, child: Container(
+                  width: sz.width * 0.9, height: sz.width * 0.9,
+                  decoration: BoxDecoration(shape: BoxShape.circle,
+                    gradient: RadialGradient(colors: [
+                      _kMid.withOpacity(0.45), Colors.transparent])),
+                )),
               ),
-            ),
 
-            // Large white decorative circles
-            Positioned(
-              top: -120,
-              right: -80,
-              child: AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(_floatAnimation.value * 0.4, _floatAnimation.value * 0.6),
-                    child: Container(
-                      width: 280,
-                      height: 280,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            pureWhite.withOpacity(0.3),
-                            pureWhite.withOpacity(0.1),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+              // 5 ── Medical bg icons (float)
+              ..._bgIcons.asMap().entries.map((e) {
+                final i = e.key; final ico = e.value;
+                return Positioned(left: ico.x * sz.width, top: ico.y * sz.height,
+                  child: Opacity(opacity: _bgFade.value * 0.055,
+                    child: Transform.translate(
+                        offset: Offset(0, _float.value * (i.isEven ? 0.7 : -0.7)),
+                      child: Transform.rotate(angle: i * math.pi / 7,
+                        child: Icon(ico.icon, size: ico.size, color: _kNavy)))));
+              }),
 
-            Positioned(
-              bottom: -140,
-              left: -100,
-              child: AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(_floatAnimation.value * -0.5, _floatAnimation.value * 0.3),
-                    child: Container(
-                      width: 320,
-                      height: 320,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            pureWhite.withOpacity(0.25),
-                            pureWhite.withOpacity(0.12),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+              // 6 ── Side orbs
+              Positioned(top: sz.height * 0.30, left: -20,
+                  child: _Orb(90, 0.12, Offset(0, _float.value * 0.5))),
+              Positioned(top: sz.height * 0.55, right: -15,
+                  child: _Orb(70, 0.10, Offset(0, _float.value * -0.6))),
 
-            // Medical pulse/heartbeat wave decoration
-            Positioned(
-              top: size.height * 0.4,
-              left: 0,
-              right: 0,
-              child: AnimatedBuilder(
-                animation: _particleAnimation,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: 0.04,
-                    child: CustomPaint(
-                      size: Size(size.width, 60),
-                      painter: HeartbeatWavePainter(
-                        animation: _particleAnimation.value,
-                        color: pureWhite,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+              // 7 ── ECG line
+              Positioned(bottom: sz.height * 0.10, left: 0, right: 0,
+                child: Opacity(opacity: _bgFade.value * 0.10,
+                  child: CustomPaint(size: Size(sz.width, 36),
+                      painter: const _EcgPainter()))),
 
-            // Additional small white circles with medical theme
-            Positioned(
-              top: size.height * 0.25,
-              left: 40,
-              child: AnimatedBuilder(
-                animation: _glowAnimation,
-                builder: (context, child) {
-                  return Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: pureWhite.withOpacity(0.15 * _glowAnimation.value),
-                      boxShadow: [
-                        BoxShadow(
-                          color: pureWhite.withOpacity(0.2 * _glowAnimation.value),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.medical_information_outlined,
-                        size: 30,
-                        color: deepBlue.withOpacity(0.3),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+              // 8 ── Main content
+              SafeArea(child: Column(children: [
+                const Spacer(flex: 3),
+                _buildIcon(),
+                const SizedBox(height: 28),
+                _buildName(),
+                const Spacer(flex: 3),
+                _buildCard(),
+                const Spacer(flex: 2),
+                _buildFooter(),
+                const SizedBox(height: 44),
+              ])),
+            ]);
 
-            Positioned(
-              bottom: size.height * 0.3,
-              right: 50,
-              child: AnimatedBuilder(
-                animation: _glowAnimation,
-                builder: (context, child) {
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: pureWhite.withOpacity(0.12 * _glowAnimation.value),
-                      boxShadow: [
-                        BoxShadow(
-                          color: pureWhite.withOpacity(0.18 * _glowAnimation.value),
-                          blurRadius: 25,
-                          spreadRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.favorite_border,
-                        size: 35,
-                        color: deepBlue.withOpacity(0.25),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // White curved accent at top
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _floatAnimation.value * 0.2),
-                    child: Container(
-                      height: 180,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            pureWhite.withOpacity(0.4),
-                            pureWhite.withOpacity(0.1),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // Main content
-            SafeArea(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Column(
-                    children: [
-                      const Spacer(flex: 3),
-
-                      // Glowing icon container with enhanced white glow
-                      AnimatedBuilder(
-                        animation: _glowAnimation,
-                        builder: (context, child) {
-                          return Container(
-                            width: 150,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: pureWhite,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: pureWhite.withOpacity(0.6 * _glowAnimation.value),
-                                  blurRadius: 40,
-                                  spreadRadius: 12,
-                                ),
-                                BoxShadow(
-                                  color: accentBlue.withOpacity(0.4 * _glowAnimation.value),
-                                  blurRadius: 50,
-                                  spreadRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: pureWhite.withOpacity(0.8),
-                                  blurRadius: 20,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 700),
-                                switchInCurve: Curves.easeOutCubic,
-                                switchOutCurve: Curves.easeInCubic,
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: Icon(
-                                  slides[currentSlide].icon,
-                                  key: ValueKey(currentSlide),
-                                  size: 75,
-                                  color: deepBlue,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 50),
-
-                      // Sliding content
-                      SizedBox(
-                        height: 115,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: FadeTransition(
-                            opacity: _slideController,
-                            child: Column(
-                              children: [
-                                Text(
-                                  slides[currentSlide].title,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.w800,
-                                    foreground: Paint()
-                                      ..shader = LinearGradient(
-                                        colors: [
-                                          darkText,
-                                          deepBlue,
-                                        ],
-                                      ).createShader(
-                                        const Rect.fromLTWH(0, 0, 200, 70),
-                                      ),
-                                    letterSpacing: 0.8,
-                                    height: 1.2,
-                                    shadows: [
-                                      Shadow(
-                                        color: pureWhite.withOpacity(0.3),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 26,
-                                    vertical: 11,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(25),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        pureWhite.withOpacity(0.45),
-                                        pureWhite.withOpacity(0.25),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color: pureWhite.withOpacity(0.6),
-                                      width: 1.5,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: pureWhite.withOpacity(0.2),
-                                        blurRadius: 15,
-                                        spreadRadius: 2,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    slides[currentSlide].subtitle,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: darkText.withOpacity(0.9),
-                                      fontWeight: FontWeight.w500,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 42),
-
-                      // Enhanced slide indicators
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          slides.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeOutCubic,
-                            margin: const EdgeInsets.symmetric(horizontal: 5),
-                            width: currentSlide == index ? 35 : 9,
-                            height: 9,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              gradient: currentSlide == index
-                                  ? LinearGradient(
-                                      colors: [deepBlue, mediumBlue],
-                                    )
-                                  : null,
-                              color: currentSlide != index
-                                  ? pureWhite.withOpacity(0.5)
-                                  : null,
-                              boxShadow: currentSlide == index
-                                  ? [
-                                      BoxShadow(
-                                        color: deepBlue.withOpacity(0.5),
-                                        blurRadius: 10,
-                                        spreadRadius: 1,
-                                      ),
-                                      BoxShadow(
-                                        color: pureWhite.withOpacity(0.3),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const Spacer(flex: 3),
-
-                      // Loading section
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 34,
-                          vertical: 20,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: LinearGradient(
-                            colors: [
-                              pureWhite.withOpacity(0.35),
-                              pureWhite.withOpacity(0.2),
-                            ],
-                          ),
-                          border: Border.all(
-                            color: pureWhite.withOpacity(0.5),
-                            width: 1.8,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: pureWhite.withOpacity(0.2),
-                              blurRadius: 20,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  deepBlue,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Text(
-                              'Preparing your experience',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: darkText.withOpacity(0.95),
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 50),
-
-                      // Bottom tagline
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: pureWhite.withOpacity(0.25),
-                          border: Border.all(
-                            color: pureWhite.withOpacity(0.4),
-                            width: 1.3,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Comprehensive Cancer Care',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: darkText.withOpacity(0.85),
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.favorite,
-                                  size: 13,
-                                  color: deepBlue.withOpacity(0.8),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Hope • Care • Heal',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: deepBlue.withOpacity(0.8),
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+            if (_exiting) {
+              content = FadeTransition(opacity: _exitFade, child: content);
+            }
+            return content;
+          },
         ),
       ),
     );
   }
+
+  // ── Icon ───────────────────────────────────────────────────────
+  Widget _buildIcon() => Opacity(opacity: _iconFade.value,
+    child: ScaleTransition(scale: _iconScale,
+      child: AnimatedBuilder(animation: _pulseCtrl, builder: (_, __) {
+        final p = _pulse.value;
+        return Stack(alignment: Alignment.center, children: [
+          // Pulse ring
+          Container(
+            width: 130 + (p - 1.0) * 80,
+            height: 130 + (p - 1.0) * 80,
+            decoration: BoxDecoration(shape: BoxShape.circle,
+                color: _kNavy.withOpacity(0.06 * (2.0 - p)))),
+          // White circle
+          Container(width: 118, height: 118,
+            decoration: BoxDecoration(shape: BoxShape.circle,
+              gradient: RadialGradient(
+                  colors: [_kWhite, _kIce.withOpacity(0.8)]),
+              boxShadow: [
+                BoxShadow(color: _kNavy.withOpacity(0.15),
+                    blurRadius: 28, spreadRadius: 2,
+                    offset: const Offset(0, 8)),
+                BoxShadow(color: _kWhite.withOpacity(0.8),
+                    blurRadius: 20, spreadRadius: 4),
+                BoxShadow(color: _kSky.withOpacity(0.3 * p),
+                    blurRadius: 40, spreadRadius: 8),
+              ],
+            )),
+          const Icon(Icons.volunteer_activism, size: 54, color: _kNavy),
+        ]);
+      }),
+    ),
+  );
+
+  // ── Name block ─────────────────────────────────────────────────
+  Widget _buildName() => SlideTransition(position: _nameSlide,
+    child: FadeTransition(opacity: _nameFade,
+      child: Column(children: [
+        const Text('OncoSoul', style: TextStyle(
+          fontSize: 42, fontWeight: FontWeight.w800,
+          color: _kNavy, letterSpacing: 1.4, height: 1.0)),
+        const SizedBox(height: 10),
+        Container(width: 200 * _dividerW.value, height: 1.5,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(2),
+            gradient: LinearGradient(colors: [Colors.transparent,
+              _kNavy.withOpacity(0.38), Colors.transparent]))),
+        const SizedBox(height: 8),
+        Opacity(opacity: _dividerW.value,
+          child: Text('C O M P R E H E N S I V E   C A N C E R   C A R E',
+            style: TextStyle(fontSize: 9, color: _kNavy.withOpacity(0.48),
+                letterSpacing: 2.0, fontWeight: FontWeight.w500))),
+      ]),
+    ),
+  );
+
+  // ── Slide card ─────────────────────────────────────────────────
+  Widget _buildCard() {
+    final s = _slides[_slide];
+    // Pick correct animation based on whether we're animating out or in
+    final fade  = _animOut ? _outFade  : _inFade;
+    final slide = _animOut ? _outSlide : _inSlide;
+
+    return SlideTransition(position: _cardRise,
+      child: FadeTransition(opacity: _cardFade,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [_kWhite.withOpacity(0.82), _kWhite.withOpacity(0.65)]),
+            border: Border.all(color: _kWhite.withOpacity(0.90), width: 1.5),
+            boxShadow: [
+              BoxShadow(color: _kNavy.withOpacity(0.11),
+                  blurRadius: 40, offset: const Offset(0, 16)),
+              BoxShadow(color: _kWhite.withOpacity(0.7),
+                  blurRadius: 1, offset: const Offset(0, -1)),
+            ],
+          ),
+          child: ClipRRect(borderRadius: BorderRadius.circular(28),
+            child: Stack(children: [
+              // Card inner top sheen
+              Positioned(top: 0, left: 0, right: 0,
+                child: Container(height: 56,
+                  decoration: BoxDecoration(gradient: LinearGradient(
+                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                    colors: [_kWhite.withOpacity(0.55), Colors.transparent])))),
+
+              Padding(padding: const EdgeInsets.fromLTRB(26, 26, 26, 24),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                  // ── Label pill (own fade, slides from left) ─
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 380),
+                    transitionBuilder: (child, anim) => FadeTransition(
+                      opacity: anim,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                            begin: const Offset(-0.12, 0),
+                            end: Offset.zero).animate(
+                            CurvedAnimation(parent: anim,
+                                curve: Curves.easeOutCubic)),
+                        child: child)),
+                    child: Container(key: ValueKey('pill$_slide'),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: _kNavy.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                            color: _kNavy.withOpacity(0.14), width: 1)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(s.icon, size: 13,
+                            color: _kNavy.withOpacity(0.72)),
+                        const SizedBox(width: 7),
+                        Text(s.label, style: TextStyle(fontSize: 10,
+                          color: _kNavy.withOpacity(0.72),
+                          fontWeight: FontWeight.w700, letterSpacing: 1.4)),
+                      ]),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ── Headline & body (slide up/down smoothly) ─
+                  SlideTransition(position: slide,
+                    child: FadeTransition(opacity: fade,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(s.title, style: const TextStyle(
+                            fontSize: 30, fontWeight: FontWeight.w800,
+                            color: _kNavy, height: 1.22, letterSpacing: 0.1)),
+                          const SizedBox(height: 10),
+                          Text(s.body, style: TextStyle(fontSize: 14,
+                            color: _kNavy.withOpacity(0.58), height: 1.65)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ── Dots ─────────────────────────────────────
+                  Row(children: List.generate(_slides.length, (i) {
+                    final active = i == _slide;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 380),
+                      curve: Curves.easeOutCubic,
+                      margin: const EdgeInsets.only(right: 7),
+                      width: active ? 28 : 8, height: 8,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: active
+                            ? _kNavy
+                            : _kNavy.withOpacity(0.18)));
+                  })),
+                ])),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Footer ─────────────────────────────────────────────────────
+  Widget _buildFooter() => Opacity(opacity: _cardFade.value,
+    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      SizedBox(width: 17, height: 17,
+        child: CircularProgressIndicator(strokeWidth: 2.0,
+          valueColor: AlwaysStoppedAnimation<Color>(
+              _kNavy.withOpacity(0.45)))),
+      const SizedBox(width: 14),
+      Text('Getting things ready…', style: TextStyle(fontSize: 13,
+          color: _kNavy.withOpacity(0.45), letterSpacing: 0.3,
+          fontWeight: FontWeight.w500)),
+    ]),
+  );
 }
 
-class SlideContent {
+// ── Static background widget ───────────────────────────────────────────────
+class _Bg extends StatelessWidget {
+  const _Bg();
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+        colors: [
+          _kWhite, _kIce,
+          Color(0xFFBBD9F5), Color(0xFF4A90D9), _kMid,
+        ],
+        stops: [0.0, 0.22, 0.48, 0.74, 1.0],
+      )));
+}
+
+// ── Floating orb ──────────────────────────────────────────────────────────
+class _Orb extends StatelessWidget {
+  final double size, opacity;
+  final Offset offset;
+  const _Orb(this.size, this.opacity, this.offset);
+  @override
+  Widget build(BuildContext context) => Transform.translate(offset: offset,
+    child: Container(width: size, height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle,
+        gradient: RadialGradient(colors: [
+          _kWhite.withOpacity(opacity), Colors.transparent]))));
+}
+
+// ── Data models ────────────────────────────────────────────────────────────
+class _SlideData {
   final IconData icon;
-  final String title;
-  final String subtitle;
-
-  SlideContent({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
+  final String label, title, body;
+  const _SlideData({required this.icon, required this.label,
+      required this.title, required this.body});
 }
 
-// Medical-themed particle painter
-class MedicalParticlePainter extends CustomPainter {
-  final double animation;
-
-  MedicalParticlePainter({required this.animation});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Small medical cross particles
-    final particles = [
-      _Particle(0.15, 0.2, 4, true),
-      _Particle(0.85, 0.15, 5, false),
-      _Particle(0.2, 0.65, 3.5, true),
-      _Particle(0.78, 0.7, 4.5, false),
-      _Particle(0.5, 0.35, 3, true),
-      _Particle(0.35, 0.8, 5.5, false),
-      _Particle(0.65, 0.45, 4, true),
-      _Particle(0.9, 0.88, 3.5, false),
-    ];
-
-    for (var particle in particles) {
-      final offset = Offset(
-        size.width * particle.x,
-        size.height * particle.y + (animation * 15 - 7.5),
-      );
-
-      if (particle.isCross) {
-        // Draw small medical cross
-        paint.color = const Color(0xFFFFFFFF).withOpacity(0.12 + animation * 0.08);
-        final crossSize = particle.radius * 2;
-        canvas.drawRect(
-          Rect.fromCenter(center: offset, width: crossSize / 3, height: crossSize),
-          paint,
-        );
-        canvas.drawRect(
-          Rect.fromCenter(center: offset, width: crossSize, height: crossSize / 3),
-          paint,
-        );
-      } else {
-        // Draw circle
-        paint.color = const Color(0xFFFFFFFF).withOpacity(0.15 + animation * 0.1);
-        canvas.drawCircle(offset, particle.radius, paint);
-
-        paint.color = const Color(0xFFFFFFFF).withOpacity(0.08 + animation * 0.05);
-        canvas.drawCircle(offset, particle.radius * 2, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(MedicalParticlePainter oldDelegate) {
-    return oldDelegate.animation != animation;
-  }
+class _BgIcon {
+  final IconData icon;
+  final double x, y, size;
+  const _BgIcon(this.icon, this.x, this.y, this.size);
 }
 
-// Heartbeat wave painter
-class HeartbeatWavePainter extends CustomPainter {
-  final double animation;
-  final Color color;
-
-  HeartbeatWavePainter({required this.animation, required this.color});
-
+// ── Dot texture ────────────────────────────────────────────────────────────
+class _DotTexturePainter extends CustomPainter {
+  const _DotTexturePainter();
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+    final p = Paint()
+      ..color = _kNavy.withOpacity(0.028)
+      ..style  = PaintingStyle.fill;
+    const gap = 28.0;
+    for (double x = gap / 2; x < size.width;  x += gap)
+      for (double y = gap / 2; y < size.height; y += gap)
+        canvas.drawCircle(Offset(x, y), 1.4, p);
+  }
+  @override bool shouldRepaint(_) => false;
+}
 
+// ── ECG line ───────────────────────────────────────────────────────────────
+class _EcgPainter extends CustomPainter {
+  const _EcgPainter();
+  @override
+  void paint(Canvas canvas, Size s) {
+    final p = Paint()
+      ..color       = _kNavy
+      ..style       = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap   = StrokeCap.round
+      ..strokeJoin  = StrokeJoin.round;
     final path = Path();
-    final offset = size.width * animation;
-
-    path.moveTo(0, size.height / 2);
-
-    for (double x = 0; x < size.width + 50; x += 50) {
-      final adjustedX = x - offset;
-      if (adjustedX > 0 && adjustedX < size.width) {
-        path.lineTo(adjustedX, size.height / 2);
-        path.lineTo(adjustedX + 5, size.height / 2 - 15);
-        path.lineTo(adjustedX + 10, size.height / 2 + 15);
-        path.lineTo(adjustedX + 15, size.height / 2 - 8);
-        path.lineTo(adjustedX + 20, size.height / 2);
-      }
+    const seg = 80.0;
+    final mid = s.height / 2;
+    double x = 0;
+    while (x < s.width) {
+      path.moveTo(x, mid);
+      path.lineTo(x + seg * 0.30, mid);
+      path.lineTo(x + seg * 0.38, mid - s.height * 0.60);
+      path.lineTo(x + seg * 0.45, mid + s.height * 0.90);
+      path.lineTo(x + seg * 0.52, mid - s.height * 0.30);
+      path.lineTo(x + seg * 0.58, mid);
+      path.lineTo(x + seg, mid);
+      x += seg;
     }
-
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, p);
   }
-
-  @override
-  bool shouldRepaint(HeartbeatWavePainter oldDelegate) {
-    return oldDelegate.animation != animation;
-  }
-}
-
-class _Particle {
-  final double x;
-  final double y;
-  final double radius;
-  final bool isCross;
-
-  _Particle(this.x, this.y, this.radius, this.isCross);
+  @override bool shouldRepaint(_) => false;
 }
